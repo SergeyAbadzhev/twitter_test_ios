@@ -26,6 +26,7 @@ NSMutableArray* twitterResponse;
     [self.tableView addPullToRefreshWithActionHandler:^{
         [self getUserTimeline];
     }];
+    [self.tableView.pullToRefreshView stopAnimating];
     
     // Do any additional setup after loading the view.
 }
@@ -56,10 +57,21 @@ NSMutableArray* twitterResponse;
             [twitterResponse removeAllObjects];
             
             NSArray *arrayRep = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-            twitterResponse = [NSMutableArray arrayWithArray:[TWTRTweet tweetsWithJSONArray:arrayRep]];
-            
-           [self.tableView reloadData];
-            [self.tableView.pullToRefreshView stopAnimating];
+            NSLog(@"%@",arrayRep);
+            @try{
+                twitterResponse = [NSMutableArray arrayWithArray:[TWTRTweet tweetsWithJSONArray:arrayRep]];
+                [self.tableView reloadData];
+            }@catch (NSException* exception){
+                UIAlertView* alert =[[UIAlertView alloc ] initWithTitle:@"Внимание"
+                                                                message:@"Превышен лимит запросов"
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+                [alert show];
+            }@finally {
+                
+            }
+                [self.tableView.pullToRefreshView stopAnimating];
     }
 }
 
@@ -110,6 +122,7 @@ NSMutableArray* twitterResponse;
         }
         else {
             NSLog(@"Sending Tweet!");
+            [self getUserTimeline];
         }
     }];
 }
